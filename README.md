@@ -1,6 +1,8 @@
 # trade-application-hx
 Trade Application / Dashboard in C#
 
+A demo release build `TradeApplication.exe` is available at `SolutionDir/bin/Release/TradeApplication.exe`. 
+
 ![gif demo](/SolutionDir/media/demo.gif)
 
 __trade-application-hx__ is created to showcase desktop development rather than quantitative modeling - the analytics in this project is very basic. The code is currently in alpha and some areas can be further polished.
@@ -9,7 +11,7 @@ __trade-application-hx__ is created to showcase desktop development rather than 
 
 # general_info
 
-__trade-application-hx__ is developed with .NET.Framework V4.0.30319 using OxyPlot as the WPF charting library. A release build `TradeApplication.exe` is available in [/SolutionDir/bin/Release](/SolutionDir/bin/Release).
+__trade-application-hx__ is developed with .NET.Framework V4.0.30319 using OxyPlot as the WPF charting library.
 
 The application takes a `trade_data.csv` in the `Data\` directory relative to the executable root as DataFeedSimulator source. A sample zipped csv file of real trading data is provided. The prices are uniformly altered and the prints are in the format `[date, time, type, price, volume]`
 
