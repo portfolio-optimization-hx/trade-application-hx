@@ -5,7 +5,7 @@ Download `Demo.zip` and run `TradeApplication.exe` for a compiled executable or 
 
 ![gif demo](/SolutionDir/media/demo.gif)
 
-__trade-application-hx__ is created to showcase desktop development rather than quantitative modeling - the analytics in this project is very basic. The code is currently in alpha and some areas can be further polished.
+__trade-application-hx__ is created to showcase desktop development rather than quantitative modeling - the analytics in this project is very basic. The project is currently in alpha and many areas can be further polished.
 
 &nbsp;
 
@@ -57,7 +57,7 @@ Trade Application is developed with performance in mind. Without the graphical u
 
 # task_list
 
-Some potential future work for this project, in no particular order:
+future improvements for this project, in no particular order:
 
 * improve documentation and comments
 * add test cases
