@@ -1,7 +1,7 @@
 # trade-application-hx
 Trade Application / Dashboard in C#
 
-A demo release build `TradeApplication.exe` is available at `SolutionDir/bin/Release/TradeApplication.exe`. 
+A demo release build `TradeApplication.exe` is available at [SolutionDir/bin/Release/TradeApplication.exe](SolutionDir/bin/Release/). 
 
 ![gif demo](/SolutionDir/media/demo.gif)
 
