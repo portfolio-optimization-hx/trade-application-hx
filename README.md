@@ -59,8 +59,8 @@ Trade Application is developed with performance in mind. Without the graphical u
 
 future improvements for this project, in no particular order:
 
-* improve documentation and comments
 * add test cases
+* improve documentation and comments
 * unify chart viewmodels to inherit from common parent class, common parameter data source
 * add simulation control methods and user interface
   * start, stop, pause, continue simulation
