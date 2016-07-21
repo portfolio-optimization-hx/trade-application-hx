@@ -130,11 +130,6 @@ namespace TradeApplication
                         BidVDChartVM.ChangeDataSource(DBuilder.TFAnalytics.BidVolumeDist[dsidx], DBuilder.Current.Print);
                         AskVDChartVM.ChangeDataSource(DBuilder.TFAnalytics.AskVolumeDist[dsidx], DBuilder.Current.Print);
                         TradedVDChartVM.ChangeDataSource(DBuilder.TFAnalytics.TradedVolumeDist[dsidx], DBuilder.Current.Print);
-
-                        //BidVDist = BidVDChartVM.ValueDist;
-                        //AskVDist = AskVDChartVM.ValueDist;
-                        //TradedVDist = TradedVDChartVM.ValueDist;
-                        //BATVDistYAxisMin = BATVDistYAxisMax = 0;
                     }
                     break;
                 case "PriceRDist":
@@ -142,7 +137,6 @@ namespace TradeApplication
                         PriceRDChartVM.DSValueDist.TSControl.TimeInterval)
                     {
                         PriceRDChartVM.ChangeDataSource(DBuilder.TFAnalytics.PriceRangeDist[dsidx], DBuilder.Current.Print);
-                        //PriceRDist = PriceRDChartVM.ValueDist;
                     }
                     break;
                 case "VolumeTDist":
@@ -150,7 +144,6 @@ namespace TradeApplication
                         VolumeTDChartVM.DSValueDist.TSControl.TimeInterval)
                     {
                         VolumeTDChartVM.ChangeDataSource(DBuilder.TFAnalytics.VolumeTotalDist[dsidx], DBuilder.Current.Print);
-                        //VolumeTDist = VolumeTDChartVM.ValueDist;
                     }
                     break;
             }

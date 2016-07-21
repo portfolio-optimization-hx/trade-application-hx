@@ -17,10 +17,10 @@ namespace TradeApplication
 
         public DataBuilder()
         {
-            Current = new DataCurrent();
-            TimeSeries = new Collection<DataTimeSeries>();
-            OHLC = new Collection<DataTSOHLC>();
-            Volume = new Collection<DataTSVolume>();
+            Current = new DataCurrent(); // print processor
+            TimeSeries = new Collection<DataTimeSeries>(); // timeseries used as controll for other data classes
+            OHLC = new Collection<DataTSOHLC>(); // open high low close
+            Volume = new Collection<DataTSVolume>(); // bid, ask, traded volume
         }
 
         public void HandlePrintUpdate(object src, EventArgs e, string s)
@@ -64,7 +64,9 @@ namespace TradeApplication
 
         public void NewTimeFrameAnalytics()
         {
-            TFAnalytics = new DataTimeFrameAnalytics(TimeSeries);
+            // DataTimeFrameAnalytics cannot be create if TimeSeries collection is empty
+            if (TimeSeries != null)
+                TFAnalytics = new DataTimeFrameAnalytics(TimeSeries);
         }
     }
 }
