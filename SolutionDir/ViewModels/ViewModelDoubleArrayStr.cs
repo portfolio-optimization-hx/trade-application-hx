@@ -4,21 +4,36 @@ using TradeApplication.DataClasses;
 
 namespace TradeApplication.ViewModels
 {
+    /// <summary>
+    /// ViewModel base class with ObservableCollection strings for text bindings
+    /// </summary>
     public abstract class ViewModelDoubleArrayStr
     {
         public double[,] TextData { get; protected set; }
-        public ObservableCollection<string> TextStr { get; protected set; }
-        
+        public ObservableCollection<string> TextStr { get; protected set; }        
     }
 
+    /// <summary>
+    /// ViewModel for Quotes, Volume text display binding.
+    /// </summary>
     public class ViewModelQuotesText : ViewModelDoubleArrayStr
     {
+        public DataCurrent DSCurrent { get; private set; }
+
         private List<string> LabelStr = new List<string>{ "BID", "ASK", "TRADED" };
 
-        public ViewModelQuotesText()
+        /// <summary>
+        /// ViewModel constructor.
+        /// </summary>
+        /// <param name="current">data source</param>
+        public ViewModelQuotesText(DataCurrent current)
         {
+            // init propreties
+            DSCurrent = current;
             TextData = new double[3, 2];
             TextStr = new ObservableCollection<string>();
+
+            // pre-allocate
             for (int i0 = 0; i0 < TextData.GetLength(0); ++i0)
             {
                 TextData[i0, 0] = 0;
@@ -27,23 +42,29 @@ namespace TradeApplication.ViewModels
             }
         }
 
-        public void NewData(double[] quotes, int[] volumes)
+        /// <summary>
+        /// New data, if data changed, update ObservableCollection.
+        /// </summary>
+        public void NewData()
         {
-            for (int i0 = 0; i0 < quotes.GetLength(0); ++i0)
+            for (int i0 = 0; i0 < DSCurrent.Quotes.GetLength(0); ++i0)
             {
-                if ((TextData[i0, 0] - quotes[i0] < -Core.DOUBLE_EPS) ||
-                (TextData[i0, 0] - quotes[i0] > +Core.DOUBLE_EPS) ||
-                (TextData[i0, 1] - volumes[i0] > -Core.DOUBLE_EPS) ||
-                (TextData[i0, 1] - volumes[i0] > -Core.DOUBLE_EPS))
+                if ((TextData[i0, 0] - DSCurrent.Quotes[i0] < -Core.DOUBLE_EPS) ||
+                (TextData[i0, 0] - DSCurrent.Quotes[i0] > +Core.DOUBLE_EPS) ||
+                (TextData[i0, 1] - DSCurrent.QuotesVolume[i0] > -Core.DOUBLE_EPS) ||
+                (TextData[i0, 1] - DSCurrent.QuotesVolume[i0] > -Core.DOUBLE_EPS))
                 {
-                    TextData[i0, 0] = quotes[i0];
-                    TextData[i0, 1] = volumes[i0];
+                    TextData[i0, 0] = DSCurrent.Quotes[i0];
+                    TextData[i0, 1] = DSCurrent.QuotesVolume[i0];
                     TextStr[i0] = (LabelStr[i0] + ": ").PadRight(8) + TextData[i0, 0].ToString("0.00  × ") + TextData[i0, 1].ToString().PadLeft(4);
                 }
             }
         }
     }
     
+    /// <summary>
+    /// ViewModel for VWAP text display bindings.
+    /// </summary>
     public class ViewModelVWAPText
     {
         public Collection<double[]> TextData { get; protected set; }
@@ -52,6 +73,10 @@ namespace TradeApplication.ViewModels
 
         private readonly List<List<string>> LabelStr;
 
+        /// <summary>
+        /// ViewModel constructor.
+        /// </summary>
+        /// <param name="vwap">data source</param>
         public ViewModelVWAPText(Collection<DataTMVWAP> vwap)
         {
             TextData = new Collection<double[]>();
@@ -76,6 +101,9 @@ namespace TradeApplication.ViewModels
             }
         }
 
+        /// <summary>
+        /// New data, if data changed, update ObservableCollection.
+        /// </summary>
         public void NewData()
         {
             for (int lidx = 0; lidx < DSVWAP.Count; ++lidx)

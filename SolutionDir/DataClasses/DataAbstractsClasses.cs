@@ -4,14 +4,29 @@ using System.Collections.Generic;
 namespace TradeApplication.DataClasses
 {
 
+    /// <summary>
+    /// Two dimensional array, subclass designed to loops around and replace
+    /// the oldest value if array size exceeded.
+    /// </summary>
+    /// <remarks>
+    /// Class for now not defined as abstact to allow object to be created as 
+    /// most basic looped array. However may change class to be abstract in the 
+    /// future depending on usage
+    /// </remarks>
+    /// <typeparam name="T">define array type, designed for numeric types</typeparam>
     public class DataLoopedArray<T>
     {
         public readonly T[,] DataArray;
-        public readonly int ColCount;
-        public readonly int RowCount;
-        public int RowIdx { get; protected set; }
-        public int RowsChanged { get; protected set; }
+        public readonly int ColCount; // number of columns
+        public readonly int RowCount; // number of rows
+        public int RowIdx { get; protected set; } // current row index
+        public int RowsChanged { get; protected set; } // number of rows changed
 
+        /// <summary>
+        /// Create array of size [rown, coln]
+        /// </summary>
+        /// <param name="rown">number of rows</param>
+        /// <param name="coln">number of columns</param>
         public DataLoopedArray(int rown, int coln)
         {
             RowCount = rown;
@@ -54,25 +69,46 @@ namespace TradeApplication.DataClasses
         }
     }
 
+    /// <summary>
+    /// Abstract looped array TimeSeriesData data class.
+    /// Data class is controlled by / matches a DataTimeSeries object.
+    /// </summary>
+    /// <typeparam name="T">define array type</typeparam>
     public abstract class DataTSData<T> : DataLoopedArray<T>
     {
-        public readonly DataTimeSeries TSControl;
+        public readonly DataTimeSeries TSControl; // TimeSeries control for data class
 
+        /// <summary>
+        /// Create looped array, same number of rows as TSControl, and given columns
+        /// </summary>
+        /// <param name="ts">TimeSeries control</param>
+        /// <param name="coln">number of columns</param>
         public DataTSData(DataTimeSeries ts, int coln) 
             : base(ts.RowCount,coln)
         {
             TSControl = ts;
         }
         
+        /// <summary>
+        /// Abstract method handles new data
+        /// </summary>
+        /// <param name="newprint"></param>
         abstract public void NewData(double[] newprint);
 
+
+        /// <summary>
+        /// On time update, match TSControl row change, replace inbetween, no-data rows with value_fill
+        /// </summary>
+        /// <param name="value_fill">value to replace in between, no-data values</param>
         public virtual void TimeUpdate(T value_fill)
         {
             if (TSControl.RowsChanged > 0)
             {
+                // match settings
                 RowIdx = TSControl.RowIdx;
                 RowsChanged = TSControl.RowsChanged;
 
+                // replace in between, no-data values
                 int cidx0, ridx0 = RowIdx;
                 for (int i0 = 0; i0 < TSControl.RowsChanged; ++i0)
                 {
@@ -83,40 +119,57 @@ namespace TradeApplication.DataClasses
             }
         }
     }
-    
+
+    /// <summary>
+    /// Abstract TimeFrame data class using a list of double array with the first index of the array as the sum of the array
+    /// Data class is controlled both by a DataTimeSeries object and new values
+    /// </summary>
+    /// <remarks>
+    /// TimeFrame aggregates across time and specfic consecutive keys in DataList 
+    /// property. DataList can be viewed two dimensionally with keys as 
+    /// rows and time as column. The amount of time each object holds is fixed 
+    /// whereas key can expand therefore the data structure is arrays combined
+    /// into a list. 
+    /// Index zero of each array is a summation entry, the rest of the rows are
+    /// the values in each time interval. As time progresses, column / time interval
+    /// are cleared and values subtracted from summation index.
+    /// DataKey is a corresponding key to each DataList. The data class
+    /// does not need DataKey, it is included for other classes and methods to 
+    /// reference DataList keys rather than recreating DataKey every time
+    /// </remarks>
     public abstract class DataTMListSum
     {
         public readonly List<double> DataKey;
         public readonly List<double[]> DataList;
-        public readonly double MinValueInterval;
+        public readonly double MinValueInterval; // minimum value interval between keys
 
-        public readonly DataTimeSeries TSControl;
-        public readonly int UpdateInterval;
-        public readonly int TimeFrame;
-        public readonly int ColCount;
+        public readonly DataTimeSeries TSControl; // TimeSeries control
+        public readonly int TimeFrame; // time frame of data object
+        public readonly int UpdateInterval; // data class update every interval minutes
+        public readonly int ColCount; // number of columns
 
-        public double KeyMin { get; private set; }
-        public double KeyMax { get; private set; }
+        public double KeyMin { get; private set; } // DataKey minimum bound
+        public double KeyMax { get; private set; } // DataKey maximum bound
         public double KeyMinCV { get; private set; } // KeyMin in contains value range
         public double KeyMaxCV { get; private set; } // KeyMax in contains value range
-        public int ColIdx { get; protected set; }
+        public int ColIdx { get; protected set; } // current column index
 
-        public double KeyLastUpdated { get; protected set; }
+        public double KeyLastUpdated { get; protected set; } // last key updated
         
         /// <summary>
-        /// Data structure maintains time frames so it can efficiently update the summation column on TimeSeries controller changes.
+        /// Data class maintains time intervals so it can efficiently update the summation column on TimeSeries controller changes.
         /// The summation column is the first column in List<double array>
         /// </summary>
-        /// <param name="dts"></param>
-        /// <param name="timeframe"></param>
-        /// <param name="mininterval"></param>
-        /// <param name="allocn"></param>
-        public DataTMListSum(DataTimeSeries dts, int timeframe, double mininterval, int allocn = 64)
+        /// <param name="ts">TimeSeries control</param>
+        /// <param name="timeframe">total time frame in object</param>
+        /// <param name="mininterval">minimum value between keys</param>
+        /// <param name="allocn">pre-allocate list size</param>
+        public DataTMListSum(DataTimeSeries ts, int timeframe, double mininterval, int allocn = 64)
         {
             int coladd = 1; // column additional to the number required to maintain frames
 
-            TSControl = dts;
-            UpdateInterval = dts.TimeInterval;
+            TSControl = ts;
+            UpdateInterval = ts.TimeInterval;
             TimeFrame = timeframe;
             ColCount = coladd + (int)Math.Ceiling((double)TimeFrame / UpdateInterval);
             ColIdx = coladd;
@@ -126,10 +179,15 @@ namespace TradeApplication.DataClasses
             DataList = new List<double[]>(allocn);
         }
 
+        /// <summary>
+        /// Convert key to list index of DataKey, DataList
+        /// </summary>
+        /// <param name="k">key</param>
+        /// <returns></returns>
         public int KeyToIdx(double k)
         {
             int idx;
-
+            
             if ((DataKey.Count == 0) ||
                 (k - KeyMin < -Core.DOUBLE_EPS) ||
                 (k - KeyMax > +Core.DOUBLE_EPS))
@@ -140,10 +198,15 @@ namespace TradeApplication.DataClasses
             return idx;
         }
 
+        /// <summary>
+        /// Add new key to DataKey if key is not within current min max bounds
+        /// </summary>
+        /// <param name="k">key</param>
         public void NewKeyValue(double k)
         {
             if (DataKey.Count == 0)
             {
+                // empty DataKey, add new key
                 DataKey.Add(k);
                 DataList.Add(new double[ColCount]);
                 KeyMin = KeyMax = k;
@@ -153,6 +216,7 @@ namespace TradeApplication.DataClasses
             {
                 while (k - KeyMin < -Core.DOUBLE_EPS)
                 {
+                    // if key is less than lower bound
                     KeyMin -= MinValueInterval;
                     DataKey.Insert(0, KeyMin);
                     DataList.Insert(0, new double[ColCount]);
@@ -160,6 +224,7 @@ namespace TradeApplication.DataClasses
                 }
                 while (k - KeyMax > +Core.DOUBLE_EPS)
                 {
+                    // if key is greater than upper bound
                     KeyMax += MinValueInterval;
                     DataKey.Add(KeyMax);
                     DataList.Add(new double[ColCount]);
@@ -168,6 +233,9 @@ namespace TradeApplication.DataClasses
             }
         }
 
+        /// <summary>
+        /// Check and update KeyMinCV, KeyMaxCV, check every index in array
+        /// </summary>
         public virtual void KeyContainValueMinMaxUpdate()
         {
 
@@ -205,6 +273,9 @@ namespace TradeApplication.DataClasses
             KeyMaxCV = DataKey[lidx];
         }
 
+        /// <summary>
+        /// Check and update KeyMinCV, KeyMaxCV, check summation index only
+        /// </summary>
         public virtual void KeyContainValueMinMaxUpdateQ() // quick
         {
             if (DataKey.Count == 0)
@@ -225,14 +296,24 @@ namespace TradeApplication.DataClasses
             KeyMaxCV = DataKey[lidx];
         }
 
+        /// <summary>
+        /// New data given key, value
+        /// </summary>
+        /// <param name="k">key</param>
+        /// <param name="v">value</param>
         abstract public void NewData(double k, double v);
 
+        /// <summary>
+        /// Add value to DataList[key]
+        /// </summary>
+        /// <param name="k">key</param>
+        /// <param name="v">value</param>
         public virtual void KeyValueAdd(double k, double v)
         {
             int lidx = KeyToIdx(k);
             if (ColIdx != 0)
                 DataList[lidx][0] += v; // add to summation column [0] 
-            DataList[lidx][ColIdx] += v; // add to current time frame column
+            DataList[lidx][ColIdx] += v; // add to current time interval column
 
             if (k - KeyMinCV < -Core.DOUBLE_EPS)
                 KeyMinCV = k;
@@ -241,6 +322,10 @@ namespace TradeApplication.DataClasses
             KeyLastUpdated = k;
         }
 
+        /// <summary>
+        /// Time update, subtract passed value from summation column,
+        /// clear passed time interval column
+        /// </summary>
         public virtual void TimeUpdate()
         {
             if ((DataList.Count == 0) || //no data to update
@@ -269,9 +354,14 @@ namespace TradeApplication.DataClasses
                     }
                 }
             }
+
+            // check, update KeyMinCV, KeyMaxCV
             KeyContainValueMinMaxUpdateQ();
         }
 
+        /// <summary>
+        /// Print data
+        /// </summary>
         public void PrintData()
         {
             Console.WriteLine();

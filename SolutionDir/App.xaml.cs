@@ -20,6 +20,7 @@ namespace TradeApplication
         public App()
         {
             // initialize DataFeedSimulator and DataBuilder objects
+            // change simulator to datafeed api to handle real-time data
             DataFeedSim = new DataFeedSimulator();
             DBuilder = new DataBuilder();
 
@@ -73,6 +74,7 @@ namespace TradeApplication
 
         public void HandleWindowClosed(object o, EventArgs e)
         {
+            // end simulation, shutdown app on main window close
             DataFeedSim.AbortSimulation();
             Application.Current.Shutdown();
         }

@@ -4,6 +4,9 @@ using TradeApplication.DataClasses;
 
 namespace TradeApplication
 {
+    /// <summary>
+    /// DataBuilder, create, aggregate, control data objects
+    /// </summary>
     public class DataBuilder
     {
         public readonly DataCurrent Current;
@@ -25,6 +28,7 @@ namespace TradeApplication
 
         public void HandlePrintUpdate(object src, EventArgs e, string s)
         {
+            // process print string
             Current.ProcessPrintStr(s);
 
             if (!Current.NewPrint)
@@ -32,6 +36,7 @@ namespace TradeApplication
 
             int i0;
 
+            // update timeseries data objects
             for (i0 = 0; i0 < TimeSeries.Count; ++i0)
                 TimeSeries[i0].NewData(Current.Print);
             for (i0 = 0; i0 < OHLC.Count; ++i0)
@@ -39,8 +44,10 @@ namespace TradeApplication
             for (i0 = 0; i0 < Volume.Count; ++i0)
                 Volume[i0].NewData(Current.Print);
 
+            // update timeframe analytics
             TFAnalytics.NewData(Current.Print);
 
+            // call data update event
             DataUpdate?.Invoke(this, EventArgs.Empty);
         }
 
@@ -62,6 +69,10 @@ namespace TradeApplication
             Volume.Add(new DataTSVolume(ts));
         }
 
+        /// <summary>
+        /// Create time frame analytics, should refactor similar to timeseries to allow for custom
+        /// timeframe analytics data objects rather than preset values
+        /// </summary>
         public void NewTimeFrameAnalytics()
         {
             // DataTimeFrameAnalytics cannot be create if TimeSeries collection is empty

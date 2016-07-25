@@ -2,6 +2,9 @@
 
 namespace TradeApplication.DataClasses
 {
+    /// <summary>
+    /// Data class to process Print string and track new print, last print, quotes, quotes volume
+    /// </summary>
     public class DataCurrent
     {
         public double[] Print { get; private set; }
@@ -10,6 +13,9 @@ namespace TradeApplication.DataClasses
         public int[] QuotesVolume { get; private set; }
         public bool NewPrint { get; private set; }
 
+        /// <summary>
+        /// Init properties
+        /// </summary>
         public DataCurrent()
         {
             Print = new double[5];
@@ -35,7 +41,7 @@ namespace TradeApplication.DataClasses
                 print_uv[1] = (Math.Floor(print_uv[1] / 100) * 60) +
                     (print_uv[1] - Math.Floor(print_uv[1] / 100)*100);
                 if (print_uv[2] > 2.0) print_uv[2] = 2.0; // change settlement prints 6, to traded 2
-                //print_uv[2] = 2.0;
+
                 // update 
                 PrintLast = Print;
                 Print = print_uv;

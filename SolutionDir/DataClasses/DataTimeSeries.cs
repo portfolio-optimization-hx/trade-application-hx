@@ -2,19 +2,36 @@
 
 namespace TradeApplication.DataClasses
 {
+    /// <summary>
+    /// TimeSeries data class, manage, aggregate, assemble timestamp in time intervals
+    /// </summary>
+    /// <remarks>
+    /// TimeSeries is a very important class, since any time based data structure is dependent
+    /// on TimeSeries to manage and align their data structure
+    /// </remarks>
     public class DataTimeSeries : DataLoopedArray<int>
     {
-        public int TimeInterval { get; private set; } // in minutes
+        public readonly int TimeInterval; // in minutes
         private int[] timestamp_last { get; set; }
 
+        /// <summary>
+        /// DataTimeSeries constructor, set object time interval and pre-allocate looped array 
+        /// </summary>
+        /// <param name="interval">minute interval</param>
+        /// <param name="allocn">number of rows to allocate</param>
         public DataTimeSeries(int interval,int allocn = 256) : base(allocn,2)
         {
             RowIdx = 0;
             TimeInterval = interval;
 
-            timestamp_last = new int[2] { 0, 0 };
+            timestamp_last = new int[2] { 0, 0 }; // zeroed timestamp_last
         }
 
+        /// <summary>
+        /// Get timestamp from new print and add to appropriate row in array
+        /// RowsChanged tracks changing time intervals, RowIdx
+        /// </summary>
+        /// <param name="newprint">new print data array in DataCurrent.Print format</param>
         public void NewData(double[] newprint)
         {
             RowsChanged = 0;
@@ -66,7 +83,7 @@ namespace TradeApplication.DataClasses
                     DataArray[ridx0, 1] = timediff;
 
                     ridx0 = (ridx0 == 0) ? RowCount - 1 : ridx0 - 1;
-                    timediff -= TimeInterval;
+                    timediff -= TimeInterval; // previous timestamp interval
                 }
             }
             else
@@ -84,12 +101,13 @@ namespace TradeApplication.DataClasses
                     DataArray[ridx0, 1] = timediff;
 
                     ridx0 = (ridx0 == 0) ? RowCount - 1 : ridx0 - 1;
-                    timediff -= TimeInterval;
+                    timediff -= TimeInterval; // previous timestamp interval
                     if (timediff < 0)
                     {
+                        // change date, previous day
                         date0 = date0.AddDays(timediff / Core.MINUTES_IN_DAY - 1);
                         dint0 = Core.DateToDateInt(date0);
-                        timediff += (-timediff / Core.MINUTES_IN_DAY + 1) * Core.MINUTES_IN_DAY;
+                        timediff += (-timediff / Core.MINUTES_IN_DAY + 1) * Core.MINUTES_IN_DAY; // reset, loop time
                     }
                 }
             }

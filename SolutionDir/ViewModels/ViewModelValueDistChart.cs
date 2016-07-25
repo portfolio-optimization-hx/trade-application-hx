@@ -5,20 +5,31 @@ using TradeApplication.DataClasses;
 
 namespace TradeApplication.ViewModels
 {
+    /// <summary>
+    /// ViewModel for distribution bar charts. ViewModel supports ObservableCollection
+    /// data point bindings for horizontal-vertical, negative-positive (left-right) bar charts.
+    /// </summary>
+    /// <typeparam name="T">define data source DataTMListSum subclass</typeparam>
     public class ViewModelValueDistChart<T> : ViewModelOxyChart
         where T : DataTMListSum
     {
         public T DSValueDist { get; private set; }
         public ObservableCollection<DataPoint> ValueDist { get; private set; }
-        public readonly bool IsHorizontal;
-        public readonly bool IsNegative; // reversed, upside down bar
+        public readonly bool IsHorizontal; // horizontal or vertical
+        public readonly bool IsNegative; // positive or negative - reversed, left side bar chart
         private double KeyMin;
         private double KeyMax;
 
-        private enum hv { vertical, horizontal };
-
+        /// <summary>
+        /// ViewModel Constructor, require data source, and optional setting for 
+        /// horizontal-vertical, negative-positive
+        /// </summary>
+        /// <param name="valuedist">data source</param>
+        /// <param name="horv">horizontal-vertical flag</param>
+        /// <param name="norp">positive-negative flag</param>
         public ViewModelValueDistChart(T valuedist, string horv = "horizontal", string norp = "positive")
         {
+            // init properties
             DSValueDist = valuedist;
             IsHorizontal = string.Equals(horv, "horizontal", StringComparison.OrdinalIgnoreCase);
             IsNegative = string.Equals(norp, "negative", StringComparison.OrdinalIgnoreCase);
@@ -27,15 +38,26 @@ namespace TradeApplication.ViewModels
             KeyMin = KeyMax = double.NaN;
         }
 
-        public void ChangeDataSource(T datasource, double[] currentprint)
+        /// <summary>
+        /// Update data source and all data point
+        /// </summary>
+        /// <param name="datasource">new data source</param>
+        public void ChangeDataSource(T datasource)
         {
-            DSValueDist = datasource;
+            DSValueDist = datasource; // change data source
+
+            // reset data points, min, max, 
             ValueDist.Clear();
             KeyMin = KeyMax = double.NaN;
-            NewData(currentprint, true);
+            NewData(true);
         }
 
-        public void NewData(double[] currentprint, bool changeds = false)
+        /// <summary>
+        /// New data. If data source rows have not changed, only update last changed data point
+        /// else or changed data source update all data points.
+        /// </summary>
+        /// <param name="changeds">change data source flag</param>
+        public void NewData(bool changeds = false)
         {
             if (DSValueDist.DataKey.Count == 0)
                 return;
@@ -61,6 +83,7 @@ namespace TradeApplication.ViewModels
 
             if ((DSValueDist.TSControl.RowsChanged == 0) && (!changeds))
             {
+                // change given list index
                 lidx = DSValueDist.KeyToIdx(DSValueDist.KeyLastUpdated);
                 SetBarValue(ValueDist, lidx, DSValueDist.DataList[lidx][0]);
             }
@@ -73,12 +96,13 @@ namespace TradeApplication.ViewModels
         }
 
         /// <summary>
-        /// Add or Insert new DataPoint<Key,Value> bar
+        /// Insert new triple data point bars to collection bar data points cdp at index idx
+        /// index of -1 adds new bars data point to the end
         /// </summary>
-        /// <param name="cdp"></param>
-        /// <param name="idx">idx == -1, add else insert at idx</param>
-        /// <param name="k"></param>
-        /// <param name="v1"></param>
+        /// <param name="cdp">collection data point</param>
+        /// <param name="idx">idx == -1 add, else insert at idx</param>
+        /// <param name="k">key</param>
+        /// <param name="v1">bar size</param>
         protected void NewBarKeyValue(ObservableCollection<DataPoint> cdp, int idx, double k, double v1)
         {
             double v0 = 0;
@@ -89,6 +113,7 @@ namespace TradeApplication.ViewModels
 
             if (idx == -1)
             {
+                // new data point
                 if (IsHorizontal)
                 {
                     cdp.Add(new DataPoint(k, v0));
@@ -119,6 +144,12 @@ namespace TradeApplication.ViewModels
             }
         }
 
+        /// <summary>
+        /// Set collection data point bar size to v at index idx
+        /// </summary>
+        /// <param name="cdp">collection data point</param>
+        /// <param name="idx">index</param>
+        /// <param name="v">bar size</param>
         protected void SetBarValue(ObservableCollection<DataPoint> cdp, int idx, double v)
         {
             if (IsNegative)

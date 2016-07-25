@@ -3,6 +3,9 @@ using TradeApplication.DataClasses;
 
 namespace TradeApplication
 {
+    /// <summary>
+    /// Grouping object and controller for different collections of TimeFrame data / analytics objects
+    /// </summary>
     public class DataTimeFrameAnalytics
     {
         public readonly Collection<DataTMValueDistribution> BidVolumeDist;
@@ -12,8 +15,13 @@ namespace TradeApplication
         public readonly Collection<DataTMValueRangeDistribution> PriceRangeDist;
         public readonly Collection<DataTMValueTotalDistribution> VolumeTotalDist;
 
-        public readonly Collection<DataTMVWAP> VWAP; // VWAP TimeInterval 01 minute
+        public readonly Collection<DataTMVWAP> VWAP;
         
+        /// <summary>
+        /// DataTimeFrameAnalytics constructor, object requires a TimeSeries consturctor
+        /// to initialize TimeFrame analytics objects
+        /// </summary>
+        /// <param name="tsc">TimeSeries data collection</param>
         public DataTimeFrameAnalytics(Collection<DataTimeSeries> tsc)
         {
             BidVolumeDist = new Collection<DataTMValueDistribution>();
@@ -23,8 +31,9 @@ namespace TradeApplication
             VolumeTotalDist = new Collection<DataTMValueTotalDistribution>();
             VWAP = new Collection<DataTMVWAP>();
 
-            double[,] pmtarray; // parameter array
-
+            double[,] pmtarray; // parameter array in row format [TimeFrame, UpdateInterval, MinValueInterval]
+            
+            // common parameter array for Bid, Ask, Traded volume distributions
             pmtarray = new double[3,3]{
               {  60,  1, Core.TICK_SIZE},
               { 240, 10, Core.TICK_SIZE},
@@ -34,42 +43,42 @@ namespace TradeApplication
             ClctnDataTMAdd(AskVolumeDist,tsc,pmtarray);
             ClctnDataTMAdd(TradedVolumeDist,tsc,pmtarray);
 
+            // parameter array for price range distribution
             pmtarray = new double[2, 3]{
               {  60,  1, Core.TICK_SIZE},
               { 240,  5, Core.TICK_SIZE}
             };
             ClctnDataTMAdd(PriceRangeDist,tsc,pmtarray);
 
-
+            // parameter array for volume total distribution
             pmtarray = new double[2, 3]{
               {  240,  1,  25},
               {  480,  5, 100}
             };
             ClctnDataTMAdd(VolumeTotalDist,tsc,pmtarray);
 
-
-            int tscidx;            
-            tscidx = TimeIntervalIdx(tsc, 01);
-            if (tscidx != -1)
-                VWAP.Add(new DataTMVWAP(tsc[tscidx], new int[] { 1, 5, 10, 15 }));
-
-            tscidx = TimeIntervalIdx(tsc, 30);
-            if (tscidx != -1)
-                VWAP.Add(new DataTMVWAP(tsc[tscidx], new int[] { 30, 60, 120, 240 }));
-
-            tscidx = TimeIntervalIdx(tsc, 60);
-            if (tscidx != -1)
-                VWAP.Add(new DataTMVWAP(tsc[tscidx], new int[] { 360, 720, 1080, 1440 }));
+            // add vwap analytics
+            ClctnDataTMVWAPAdd(VWAP, tsc, new int[] {    1,    5,   10,   15 }, 01);
+            ClctnDataTMVWAPAdd(VWAP, tsc, new int[] {   30,   60,  120,  240 }, 30);
+            ClctnDataTMVWAPAdd(VWAP, tsc, new int[] {  360,  720, 1080, 1440 }, 30);
         }
 
+        /// <summary>
+        /// Process new data for all analytics data collections
+        /// </summary>
+        /// <param name="newprint">new print data array in DataCurrent.Print format</param>
         public void NewData(double[] newprint)
         {
+            if (newprint.Length < 5) // minimal data verification
+                return;
+
+            // update based on print type
             switch ((int)newprint[2])
             {
                 case 0:
                     ClctnDataTMNewData(BidVolumeDist, newprint[3], newprint[4]);
                     
-                    // no new data but check timeupdate
+                    // no new data but check timeupdate for data classes alignment
                     ClctnDataTMTimeUpdate(AskVolumeDist);
                     ClctnDataTMTimeUpdate(TradedVolumeDist);
                     ClctnDataTMTimeUpdate(VolumeTotalDist);
@@ -79,7 +88,7 @@ namespace TradeApplication
                 case 1:
                     ClctnDataTMNewData(AskVolumeDist, newprint[3], newprint[4]);
 
-                    // no new data but check timeupdate
+                    // no new data but check timeupdate for data classes alignment
                     ClctnDataTMTimeUpdate(BidVolumeDist);
                     ClctnDataTMTimeUpdate(TradedVolumeDist);
                     ClctnDataTMTimeUpdate(VolumeTotalDist);
@@ -94,53 +103,20 @@ namespace TradeApplication
                     ClctnDataTMNewData(PriceRangeDist, -1, newprint[3]);
                     ClctnDataTMNewData(VWAP, newprint[3], newprint[4]);
 
-                    // no new data but check timeupdate
+                    // no new data but check timeupdate for data classes alignment
                     ClctnDataTMTimeUpdate(BidVolumeDist);
                     ClctnDataTMTimeUpdate(AskVolumeDist);
                     break;
             }
         }
-        
-        private int TimeIntervalIdx(Collection<DataTimeSeries> tsc,int timeinterval)
-        {
-            int idx = -1;
-            for (int i0 = 0; i0 < tsc.Count; ++i0)
-            {
-                if (tsc[i0].TimeInterval == timeinterval)
-                {
-                    idx = i0;
-                    break;
-                }
-            }
 
-            return idx;
-        }
-
-        private DataTimeSeries GetTSControl(Collection<DataTimeSeries> tsc, int timeinterval)
-        {
-            int idx = -1;
-            for (int i0 = 0; i0 < tsc.Count; ++i0)
-            {
-                if (tsc[i0].TimeInterval == timeinterval)
-                {
-                    idx = i0;
-                    break;
-                }
-            }
-
-            if (idx == -1)
-                return null;
-            return tsc[idx];
-        }
-
-        #region collection private functions
-        private void ClctnDataTMTimeUpdate<T>(Collection<T> clctn)
-            where T:DataTMListSum
-        {
-            for (int i0 = 0; i0 < clctn.Count; ++i0)
-                clctn[i0].TimeUpdate();
-        }
-
+        /// <summary>
+        /// Create DataTM object(s) from parameter array settings and add to Collection
+        /// overloaded method because generic method require workaround for constructor
+        /// </summary>
+        /// <param name="clctn">TimeFrame Value Distribution data collection</param>
+        /// <param name="tsc">TimeSeries data collection</param>
+        /// <param name="parameter_array">parameter array in row format [TimeFrame, UpdateInterval, MinValueInterval]</param>
         private void ClctnDataTMAdd(Collection<DataTMValueDistribution> clctn, Collection<DataTimeSeries> tsc, double[,] parameter_array)
         {
             if (parameter_array.GetLength(1) != 3)
@@ -155,6 +131,13 @@ namespace TradeApplication
             }
         }
 
+        /// <summary>
+        /// Create DataTM object(s) from parameter array settings and add to Collection
+        /// overloaded method because generic method require workaround for constructor
+        /// </summary>
+        /// <param name="clctn">TimeFrame Value Range Distribution data collection</param>
+        /// <param name="tsc">TimeSeries data collection</param>
+        /// <param name="parameter_array">parameter array in row format [TimeFrame, UpdateInterval, MinValueInterval]</param>
         private void ClctnDataTMAdd(Collection<DataTMValueRangeDistribution> clctn, Collection<DataTimeSeries> tsc, double[,] parameter_array)
         {
             if (parameter_array.GetLength(1) != 3)
@@ -169,6 +152,13 @@ namespace TradeApplication
             }
         }
 
+        /// <summary>
+        /// Create DataTM object(s) from parameter array settings and add to Collection
+        /// overloaded method because generic method require workaround for constructor
+        /// </summary>
+        /// <param name="clctn">TimeFrame Value Total Distribution data collection</param>
+        /// <param name="tsc">TimeSeries data collection</param>
+        /// <param name="parameter_array">parameter array in row format [TimeFrame, UpdateInterval, MinValueInterval]</param>
         private void ClctnDataTMAdd(Collection<DataTMValueTotalDistribution> clctn, Collection<DataTimeSeries> tsc, double[,] parameter_array)
         {
             if (parameter_array.GetLength(1) != 3)
@@ -183,27 +173,67 @@ namespace TradeApplication
             }
         }
 
-        //private void ClctnDataTMAdd<T>(Collection<T> clctn, Collection<DataTimeSeries> tsc, double[,] parameter_array)
-        //    where T:DataTMList, new()
-        //{
-        //    if (parameter_array.GetLength(1) != 3)
-        //        return;
-
-        //    int tscidx;
-        //    for (int i0 = 0; i0 < parameter_array.GetLength(0); ++i0)
-        //    {
-        //        tscidx = TimeIntervalIdx(tsc, (int)parameter_array[i0, 1]);
-        //        if (tscidx != -1)
-        //        clctn.Add((T)Activator.CreateInstance(typeof(T), tsc[tscidx], (int)parameter_array[i0, 0], parameter_array[i0, 2]));
-        //    }
-        //}
-
-        private void ClctnDataTMNewData<T>(Collection<T> tmc, double k, double v)
+        /// <summary>
+        /// Create single DataTMVWAP object and add to colleciton
+        /// </summary>
+        /// <param name="clctn">TimeFrame VWAP data collection</param>
+        /// <param name="tsc">TimeSeries data collection</param>
+        /// <param name="timeframes">parameter array in row format [TimeFrame, UpdateInterval, MinValueInterval]</param>
+        /// <param name="updateinterval">parameter array in row format [TimeFrame, UpdateInterval, MinValueInterval]</param>
+        private void ClctnDataTMVWAPAdd(Collection<DataTMVWAP> clctn, Collection<DataTimeSeries> tsc, int[] timeframes, int updateinterval)
+        {
+            int tscidx = TimeIntervalIdx(tsc, updateinterval);
+            if (tscidx != -1) // if timeseries exist, create DataTMVWAP and add to collection
+                VWAP.Add(new DataTMVWAP(tsc[tscidx], timeframes));
+        }
+        
+        /// <summary>
+        /// Private Collection Method: call TimeUpdate() in TimeFrame data collection
+        /// </summary>
+        /// <typeparam name="T">DataTM subclasses of DataTMListSum</typeparam>
+        /// <param name="clctn">TimeFrame data Collection</param>
+        private void ClctnDataTMTimeUpdate<T>(Collection<T> clctn)
             where T : DataTMListSum
         {
-            for (int i0 = 0; i0 < tmc.Count; ++i0)
-                tmc[i0].NewData(k, v);
+            for (int i0 = 0; i0 < clctn.Count; ++i0)
+                clctn[i0].TimeUpdate();
         }
-        #endregion
+
+        /// <summary>
+        /// Private Collection Method: call NewData() in TimeFrame data collection
+        /// </summary>
+        /// <typeparam name="T">DataTM subclasses of DataTMListSum</typeparam>
+        /// <param name="clctn">TimeFrame data Collection</param>
+        /// <param name="k">new data key</param>
+        /// <param name="v">new data value</param>
+        private void ClctnDataTMNewData<T>(Collection<T> clctn, double k, double v)
+            where T : DataTMListSum
+        {
+            for (int i0 = 0; i0 < clctn.Count; ++i0)
+                clctn[i0].NewData(k, v);
+        }
+        
+        /// <summary>
+        /// Search TimeSeries data collection for timeinterval, return Idx of timeinterval and -1 timeinterval
+        /// does not exist in TimeSeries collection
+        /// </summary>
+        /// <param name="tsc">TimeSeries data collection</param>
+        /// <param name="timeinterval">time interval in (int) minutes</param>
+        /// <returns></returns>
+        private int TimeIntervalIdx(Collection<DataTimeSeries> tsc, int timeinterval)
+        {
+            int idx = -1;
+            for (int i0 = 0; i0 < tsc.Count; ++i0)
+            {
+                if (tsc[i0].TimeInterval == timeinterval)
+                {
+                    idx = i0;
+                    break;
+                }
+            }
+
+            return idx;
+        }
+
     }
 }

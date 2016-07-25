@@ -5,9 +5,11 @@ using System.Threading;
 namespace TradeApplication
 {
 
+    /// <summary>
+    /// Datafeed Simulator, use a csv file as data source and simulate data api new print events
+    /// </summary>
     class DataFeedSimulator
     {
-        //public event EventHandler NewPrint;
         public delegate void EventStrHandler(object source, EventArgs e, string s);
         public event EventStrHandler PrintUpdate;
         private Thread SimThread { get; set; }
@@ -42,6 +44,9 @@ namespace TradeApplication
             }
         }
 
+        /// <summary>
+        /// Abort async datafeed simulation
+        /// </summary>
         public void AbortSimulation()
         {
             if (SimThread != null)
@@ -49,6 +54,10 @@ namespace TradeApplication
                     SimThread.Abort();
         }
 
+        /// <summary>
+        /// Check async datafeed simulation is running
+        /// </summary>
+        /// <returns></returns>
         public bool SimulationIsRunning()
         {
             if (SimThread == null)
@@ -56,12 +65,18 @@ namespace TradeApplication
             return SimThread.IsAlive;
         }
 
+        /// <summary>
+        /// Start simulation
+        /// </summary>
+        /// <param name="file_path">csv data source path</param>
+        /// <param name="prints_max">simulate n prints</param>
         private void SimulationMethod(string file_path, int prints_max)
         {
             StreamReader file = new StreamReader(file_path);
             string nline;
             int prints_count = 0;
-
+            
+            // loop through file till end or max, call PrintUpdate event
             while (((prints_max == 0) || (prints_count < prints_max)) && ((nline = file.ReadLine()) != null))
             {
                 PrintUpdate?.Invoke(this, EventArgs.Empty, nline);
