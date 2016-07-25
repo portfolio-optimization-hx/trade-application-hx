@@ -56,7 +56,7 @@ namespace TradeApplication
                 if (File.Exists(zip_path))
                     ZipFile.ExtractToDirectory(zip_path, data_dir);
                 else
-                    MessageBox.Show(string.Format("Please ensure the following directory contains either trade_data.csv or trade_data.zip.\n\n     {0}\n\nApplication will shutdown after message box close.", data_dir),
+                    MessageBox.Show(string.Format("Please ensure the following directory contains either trade_data.csv or trade_data.zip. A sample trade_data.zip is found in `SolutionDir\\Data`\n     {0}\n\nApplication will shutdown after message box close.", data_dir),
                         "Can Not Find Data File");
             }
             
