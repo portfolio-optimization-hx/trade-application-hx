@@ -30,6 +30,7 @@
 
         <Color x:Key="MWBackgroundColor">#2D3236</Color>
         <SolidColorBrush x:Key="MWBackgroundBrush"  Color="#2D3236" />
+        <SolidColorBrush x:Key="Orange1Brush"  Color="#FC7E27" />
 
         <Color x:Key="BorderColor1">#FFFFFF</Color>
 
@@ -227,6 +228,32 @@
         <TextBlock Grid.Row="0" Grid.Column="2" Margin="0,0,0,0" Style="{StaticResource TextBlock1}" Text="{Binding QuotesTextStr[0]}" />
         <TextBlock Grid.Row="0" Grid.Column="3" Margin="0,0,0,0" Style="{StaticResource TextBlock1}" Text="{Binding QuotesTextStr[1]}" />
 
+        <TextBlock Grid.Row="0" Grid.Column="1" Height="25"  Style="{StaticResource TextBlock1}" Background="#FF0F5CA4" Visibility="{Binding BtnsSimControlVisibility}" Text="Forward # of Prints:"></TextBlock>
+        <TextBox Grid.Row="0" Grid.Column="2" Height="25" Visibility="{Binding BtnsSimControlVisibility}" Text="{Binding TBoxSimControlForward}"></TextBox>
+        <Button Grid.Row="0" Grid.Column="4" Height="25" Style="{StaticResource Button1}" Margin="15,0,15,0" Visibility="{Binding BtnsSimControlVisibility}"
+                                Command="{Binding ButtonsClick}" 
+                                CommandParameter="{Binding ButtonsBind[4][1].BtnParameters}"
+                                ToolTip="{Binding ButtonsBind[4][1].BtnToolTip}">
+            <TextBlock FontWeight="Bold" Text="{Binding ButtonsBind[4][1].BtnText}"/>
+        </Button>
+        <Button Grid.Row="1" Grid.RowSpan="1" Grid.Column="4" Height="25" VerticalAlignment="Top" Style="{StaticResource Button1}" Margin="15,-5,15,0" 
+                                Command="{Binding ButtonsClick}" 
+                                CommandParameter="{Binding ButtonsBind[4][0].BtnParameters}"
+                                ToolTip="{Binding ButtonsBind[4][0].BtnToolTip}">
+            <TextBlock FontWeight="Bold">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Text" Value="PauseSim"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding BtnsSimControlVisibility}" Value="Visible">
+                                <Setter Property="Text" Value="ContinueSim" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+        </Button>
+
         <Grid Grid.Row="1" Grid.RowSpan="3" Grid.Column="1" Grid.ColumnSpan="3" Background="#FF0E4E8B" Margin="15,22,15,15">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1*" />
@@ -275,7 +302,7 @@
                 </ItemsControl.ItemsPanel>
             </ItemsControl>
         </Grid>
-        <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Margin="15,0,0,0" FontSize="14" FontWeight="Bold" Text="VOLUME WEIGHTED AVERAGE PRICE" Foreground="#FFFFFFFF" ToolTip="Volume Weighted Average Price" />
+        <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Margin="15,0,0,0" FontSize="12" FontWeight="Bold" Text="VOLUME WEIGHTED AVERAGE PRICE" Foreground="#FFFFFFFF" ToolTip="Volume Weighted Average Price" />
         <!-- END Text Items -->
 
 
@@ -335,11 +362,11 @@
         <!-- BEGIN Buttons Select Data Source -->
         <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Margin="0,10,30,0" Style="{StaticResource TitleControl}">
             <TextBlock ToolTip="Open-High-Low-Close" Style="{StaticResource Header1}">OHLC</TextBlock>
-            <ItemsControl ItemsSource="{Binding BtnSelectBind[0]}">
+            <ItemsControl ItemsSource="{Binding ButtonsBind[0]}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Button Height="25" Style="{StaticResource Button1}" Margin="1"
-                                Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.SelectSourceClick}" 
+                                Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.ButtonsClick}" 
                                 CommandParameter="{Binding BtnParameters}"
                                 ToolTip="{Binding BtnToolTip}">
                             <TextBlock Text="{Binding BtnText}"/>
@@ -355,7 +382,7 @@
         </StackPanel>
 
         <StackPanel Grid.Row="12" Grid.RowSpan="1" Grid.Column="0" Grid.ColumnSpan="1" Margin="0,0,0,0"  Style="{StaticResource TitleControl}">
-            <TextBlock ToolTip="Bid-Ask Volume" Style="{StaticResource Header2}">Bid-Ask Volume</TextBlock>
+            <TextBlock ToolTip="Bid-Ask Volume" Style="{StaticResource Header2}">*Bid-Ask Volume</TextBlock>
         </StackPanel>
 
         <StackPanel Grid.Row="16" Grid.RowSpan="1" Grid.Column="0" Grid.ColumnSpan="1" Margin="0,0,0,0"  Style="{StaticResource TitleControl}">
@@ -363,12 +390,12 @@
         </StackPanel>
 
         <StackPanel Grid.Row="4" Grid.RowSpan="2" Grid.Column="1" Grid.ColumnSpan="3" Margin="0,10,0,0" Style="{StaticResource TitleControl}">
-            <TextBlock ToolTip="Bid-Ask-Traded Volume Distribution" Style="{StaticResource Header2}">BATV-Dist</TextBlock>
-            <ItemsControl ItemsSource="{Binding BtnSelectBind[1]}">
+            <TextBlock ToolTip="Bid-Ask-Traded Volume Distribution" Style="{StaticResource Header2}">*BATV-Dist</TextBlock>
+            <ItemsControl ItemsSource="{Binding ButtonsBind[1]}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Button Height="25" Style="{StaticResource Button1}" Margin="1"
-                                Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.SelectSourceClick}" 
+                                Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.ButtonsClick}" 
                                 CommandParameter="{Binding BtnParameters}"
                                 ToolTip="{Binding BtnToolTip}">
                             <TextBlock Text="{Binding BtnText}"/>
@@ -385,11 +412,11 @@
 
         <StackPanel Grid.Row="12" Grid.RowSpan="2" Grid.Column="1" Grid.ColumnSpan="3" Margin="0,0,0,0" Style="{StaticResource TitleControl}">
             <TextBlock ToolTip="Price-Range Distribution" Style="{StaticResource Header2}">PriceRange-Dist</TextBlock>
-            <ItemsControl ItemsSource="{Binding BtnSelectBind[2]}">
+            <ItemsControl ItemsSource="{Binding ButtonsBind[2]}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Button Height="25" Style="{StaticResource Button1}" Margin="1"
-                                Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.SelectSourceClick}" 
+                                Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.ButtonsClick}" 
                                 CommandParameter="{Binding BtnParameters}"
                                 ToolTip="{Binding BtnToolTip}">
                             <TextBlock Text="{Binding BtnText}"/>
@@ -406,11 +433,11 @@
 
         <StackPanel Grid.Row="16" Grid.RowSpan="2" Grid.Column="1" Grid.ColumnSpan="3" Margin="0,0,0,0"  Style="{StaticResource TitleControl}">
             <TextBlock ToolTip="Volume-Total Distribution" Style="{StaticResource Header2}">VolumeTotal-Dist</TextBlock>
-            <ItemsControl ItemsSource="{Binding BtnSelectBind[3]}">
+            <ItemsControl ItemsSource="{Binding ButtonsBind[3]}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Button Height="25" Style="{StaticResource Button1}" Margin="1"
-                                Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.SelectSourceClick}" 
+                                Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.ButtonsClick}" 
                                 CommandParameter="{Binding BtnParameters}"
                                 ToolTip="{Binding BtnToolTip}">
                             <TextBlock Text="{Binding BtnText}"/>

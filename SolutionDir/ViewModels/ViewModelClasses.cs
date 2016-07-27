@@ -135,7 +135,7 @@ namespace TradeApplication.ViewModels
         /// <param name="srcname">name</param>
         /// <param name="btnstr">button text string</param>
         /// <param name="tooltip_prepend">tooltip prepend string</param>
-        public void AddSrcString(string srcname, List<string> btnstr, string tooltip_prepend = "")
+        public void AddSrcString(string srcname, Collection<string> btnstr, string tooltip_prepend = "")
         {
             ObservableCollection<ButtonBindings> cbtn = new ObservableCollection<ButtonBindings>();
             for (int i0 = 0; i0 < btnstr.Count; ++i0)
@@ -149,6 +149,29 @@ namespace TradeApplication.ViewModels
             }
             BtnBind.Add(cbtn);
         }
+        
+        /// <summary>
+        /// Create button binding from list of button text strings
+        /// </summary>
+        /// <param name="srcname">name</param>
+        /// <param name="btnstr">button text string</param>
+        /// <param name="tooltip">tooltip string</param>
+        public void AddSrcString(string srcname, Collection<string> btnstr, Collection<string> tooltip)
+        {
+            if (tooltip.Count < btnstr.Count)
+                tooltip.Add("");
 
+            ObservableCollection<ButtonBindings> cbtn = new ObservableCollection<ButtonBindings>();
+            for (int i0 = 0; i0 < btnstr.Count; ++i0)
+            {
+                cbtn.Add(new ButtonBindings
+                {
+                    BtnParameters = new Tuple<string, int>(srcname, i0),
+                    BtnText = btnstr[i0],
+                    BtnToolTip = tooltip[i0]
+                });
+            }
+            BtnBind.Add(cbtn);
+        }
     }
 }

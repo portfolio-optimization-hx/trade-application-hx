@@ -56,8 +56,8 @@ namespace TradeApplication.ViewModels
         /// New data. If data source rows have not changed, only update last changed data point
         /// else or changed data source update all data points.
         /// </summary>
-        /// <param name="changeds">change data source flag</param>
-        public void NewData(bool changeds = false)
+        /// <param name="updateall">force update all flag</param>
+        public void NewData(bool updateall = false)
         {
             if (DSValueDist.DataKey.Count == 0)
                 return;
@@ -81,7 +81,7 @@ namespace TradeApplication.ViewModels
             KeyMin = DSValueDist.KeyMin;
             KeyMax = DSValueDist.KeyMax;
 
-            if ((DSValueDist.TSControl.RowsChanged == 0) && (!changeds))
+            if ((DSValueDist.TSControl.RowsChanged == 0) && (!updateall))
             {
                 // change given list index
                 lidx = DSValueDist.KeyToIdx(DSValueDist.KeyLastUpdated);

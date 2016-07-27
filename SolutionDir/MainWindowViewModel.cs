@@ -60,13 +60,19 @@ namespace TradeApplication
         // vwap text properties
         public ViewModelVWAPText VWAPTextVM { get; private set; }
         public Collection<ObservableCollection<string>> VWAPTextStr { get; private set; }
-
+  
         // data source selection button properties
-        public ViewModelButtonsSelect BtnSlctCSVVM { get; private set; }
-        public Collection<ObservableCollection<ViewModelButtonsSelect.ButtonBindings>> BtnSelectBind { get; private set; }
+        public ViewModelButtonsSelect ButtonsVM { get; private set; }
+        public Collection<ObservableCollection<ViewModelButtonsSelect.ButtonBindings>> ButtonsBind { get; private set; }
 
-        public ICommand SelectSourceClick { get; set; }
-                
+        public System.Windows.Visibility BtnsSimControlVisibility { get; private set; }
+        public string TBoxSimControlForward { get; set; }
+
+        public ICommand ButtonsClick { get; set; }
+
+        public delegate void EventIntHandler(int mode, int nprints);
+        public event EventIntHandler SimControlEvent;
+
         /// <summary>
         /// MainWindow constructor, create chart ViewModels setup ObservableCollections for View binding
         /// </summary>
@@ -119,15 +125,21 @@ namespace TradeApplication
             VWAPTextStr = VWAPTextVM.TextStr;
 
             // add data source selection buttons each set of charts
-            BtnSlctCSVVM = new ViewModelButtonsSelect();
-            BtnSlctCSVVM.AddSrcDS("OHLCVolume", DBuilder.OHLC,"View OHLC Volume: ");
-            BtnSlctCSVVM.AddSrcDS("BATVDist", DBuilder.TFAnalytics.BidVolumeDist);
-            BtnSlctCSVVM.AddSrcDS("PriceRDist", DBuilder.TFAnalytics.PriceRangeDist);
-            BtnSlctCSVVM.AddSrcDS("VolumeTDist", DBuilder.TFAnalytics.VolumeTotalDist);
-            BtnSelectBind = BtnSlctCSVVM.BtnBind;
-            
+            ButtonsVM = new ViewModelButtonsSelect();
+            ButtonsVM.AddSrcDS("OHLCVolume", DBuilder.OHLC,"View OHLC Volume: ");
+            ButtonsVM.AddSrcDS("BATVDist", DBuilder.TFAnalytics.BidVolumeDist);
+            ButtonsVM.AddSrcDS("PriceRDist", DBuilder.TFAnalytics.PriceRangeDist);
+            ButtonsVM.AddSrcDS("VolumeTDist", DBuilder.TFAnalytics.VolumeTotalDist);
+
+            ButtonsVM.AddSrcString("SimControl", 
+                new Collection<string> { "PauseContinueSim", "Forward" }, 
+                new Collection<string> { "Pause / Continue Simulation", "Run simulation forward [input] number of prints in background" });
+
+            ButtonsBind = ButtonsVM.BtnBind;
+            BtnsSimControlVisibility = System.Windows.Visibility.Hidden;
+
             // selection button click command handler
-            SelectSourceClick = new RelayCommand(SelectSourceCommand);
+            ButtonsClick = new RelayCommand(SelectSourceCommand);
         }  
 
         /// <summary>
@@ -161,6 +173,10 @@ namespace TradeApplication
                     {
                         CSChartVM.ChangeDataSource(DBuilder.OHLC[dsidx], DBuilder.Current.Print);
                         VolumeChartVM.ChangeDataSource(DBuilder.Volume[dsidx]);
+
+                        // notify label formatter change
+                        CSLabelFormatter = CSChartVM.XAxisLabelFormatter;
+                        NotifyPropertyChanged("CSLabelFormatter");
                     }
                     break;
                 case "BATVDist":
@@ -186,6 +202,29 @@ namespace TradeApplication
                         VolumeTDChartVM.ChangeDataSource(DBuilder.TFAnalytics.VolumeTotalDist[dsidx]);
                     }
                     break;
+                case "SimControl":
+                    if (dsidx == 0)
+                    {
+                        // pause / continue
+                        if (BtnsSimControlVisibility != System.Windows.Visibility.Visible)
+                        {
+                            BtnsSimControlVisibility = System.Windows.Visibility.Visible;
+                            SimControlEvent?.Invoke(0, 0);
+                        }
+                        else
+                        {
+                            BtnsSimControlVisibility = System.Windows.Visibility.Hidden;
+                            SimControlEvent?.Invoke(1, 0);
+                        }
+                        NotifyPropertyChanged("BtnsSimControlVisibility");
+                    } else
+                    {
+                        // forward
+                        int nprints;
+                        if (int.TryParse(TBoxSimControlForward, out nprints))
+                            SimControlEvent?.Invoke(2, nprints);
+                    }
+                    break;
             }
         }
 
@@ -196,10 +235,19 @@ namespace TradeApplication
         /// <param name="e"></param>
         public void HandleDataUpdate(object o, EventArgs e)
         {
+            NewData();    
+        }
+
+        /// <summary>
+        /// MainWindow NewData, option to force update all
+        /// </summary>
+        /// <param name="updateall">force update all flag</param>
+        public void NewData(bool updateall = false)
+        {
             App.Current?.Dispatcher.Invoke((Action)delegate // invoke in GUI thread
             {
                 double[] currentprint = DBuilder.Current.Print;
-                CSChartVM.NewData(currentprint);
+                CSChartVM.NewData(currentprint, updateall); 
                 if (DBuilder.OHLC[0].RowsChanged == 0)
                 {
                     // notify label formatter change
@@ -207,12 +255,12 @@ namespace TradeApplication
                     NotifyPropertyChanged("CSLabelFormatter");
                 }
 
-                VolumeChartVM.NewData();
-                BidVDChartVM.NewData();
-                AskVDChartVM.NewData();
-                TradedVDChartVM.NewData();
-                PriceRDChartVM.NewData();
-                VolumeTDChartVM.NewData();
+                VolumeChartVM.NewData(updateall);
+                BidVDChartVM.NewData(updateall);
+                AskVDChartVM.NewData(updateall);
+                TradedVDChartVM.NewData(updateall);
+                PriceRDChartVM.NewData(updateall);
+                VolumeTDChartVM.NewData(updateall);
                 BATVDistYAxisUpdate();
 
                 QuotesTextVM.NewData();

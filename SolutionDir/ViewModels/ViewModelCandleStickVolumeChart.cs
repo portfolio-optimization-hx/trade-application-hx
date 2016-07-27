@@ -86,14 +86,14 @@ namespace TradeApplication.ViewModels
         /// OHLC Close price until timeseries has passed
         /// </remarks>
         /// <param name="current">current print data array in DataCurrent.Print format</param>
-        /// <param name="changeds">change data source flag</param>
-        public void NewData(double[] currentprint, bool changeds = false)
+        /// <param name="updateall">force update all flag</param>
+        public void NewData(double[] currentprint, bool updateall = false)
         {
             double price = currentprint[3];
             int dataidx = DSOHLC.RowIdx;
             int csidx = SDataCount - 1;
 
-            if ((DSOHLC.RowsChanged == 0) && (!changeds))
+            if ((DSOHLC.RowsChanged == 0) && (!updateall))
             {
                 // no row changes only check and update last data point
                 if (currentprint[2] != Core.PRINT_TYPE_TRADED) // only update for shifted price
@@ -260,13 +260,13 @@ namespace TradeApplication.ViewModels
         /// New data. If data source rows have not changed, only update last data point
         /// else or changed data source update all data points.
         /// </summary>
-        /// <param name="changeds">change data source flag</param>
-        public void NewData(bool changeds = false)
+        /// <param name="updateall">force update all flag</param>
+        public void NewData(bool updateall = false)
         {
             int dataidx = DSVolume.RowIdx;
             int vidx = SDataCount - 1;
 
-            if ((DSVolume.RowsChanged == 0) && (!changeds))
+            if ((DSVolume.RowsChanged == 0) && (!updateall))
             {
                 // no row change, only update last data point
                 SetCollectionDataPointY(VBid, vidx, DSVolume.DataArray[dataidx, 0]);

@@ -37,7 +37,7 @@ namespace TradeApplication
             pmtarray = new double[3,3]{
               {  60,  1, Core.TICK_SIZE},
               { 240, 10, Core.TICK_SIZE},
-              {1440, 60, Core.TICK_SIZE}
+              {1440, 60, Core.TICK_SIZE*10}
             };
             ClctnDataTMAdd(BidVolumeDist,tsc,pmtarray);
             ClctnDataTMAdd(AskVolumeDist,tsc,pmtarray);
@@ -52,8 +52,8 @@ namespace TradeApplication
 
             // parameter array for volume total distribution
             pmtarray = new double[2, 3]{
-              {  240,  1,  25},
-              {  480,  5, 100}
+              {  120,  1, 100},
+              {  480,  5, 250}
             };
             ClctnDataTMAdd(VolumeTotalDist,tsc,pmtarray);
 

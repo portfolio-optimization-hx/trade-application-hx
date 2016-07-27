@@ -46,5 +46,4 @@ namespace TradeApplication
             logAction(message);
         }
     }
-
 }
