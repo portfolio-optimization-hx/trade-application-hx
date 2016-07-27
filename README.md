@@ -3,7 +3,7 @@ Trade Application / Dashboard in C#
 
 Download `Demo.zip` and run `TradeApplication.exe` for a compiled executable or check [SolutionDir/bin/Release/](SolutionDir/bin/Release/) for the release build.
 
-![gif demo](/SolutionDir/media/demo.gif)
+![gif demo](/SolutionDir/media/demo02.gif)
 
 __trade-application-hx__ is created to showcase desktop development rather than quantitative modeling - the analytics in this project is very basic. The project is currently in alpha and many areas can be further polished.
 
@@ -47,7 +47,7 @@ Trade Application is developed with performance in mind. Without the graphical u
 
 &nbsp;
 
-<sup>1</sup> *To do so, comment out line*
+<sup>1</sup> *To do so in GUI, click PauseSim, enter 5000000 click Forward, or in code comment out line*
 
   `DBuilder.DataUpdate += MWindow.VM.HandleDataUpdate;` in `SolutionDir\App.xaml.cs`
 
@@ -68,3 +68,11 @@ future improvements for this project, in no particular order:
   * start simulation at x prints
 * add functionality to allow user defined inputs, layout
 * multi-panelled user interface
+* add more variable checks
+
+&nbsp;
+
+# change_log
+
+* __2016-07-25:__ Added more documentation and comments
+* __2016-07-26:__ Added simulation control, pause, continue, forward. _Note: default DataFeedSimulator Thread.Sleep() is now set to 10 to improve GUI responsiveness to mouse clicks. Simulation with GUI with take longer to run._
